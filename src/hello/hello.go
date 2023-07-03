@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
+	"strconv"
 )
 
 const monitoramentos = 3
@@ -85,11 +89,13 @@ func testaSite(site string){
 		fmt.Println("Ocorreu um erro: ", err)
 	}
 
-		if response.StatusCode == 200 {
-			fmt.Println("Site: ", site, "foi carregado com sucesso")
-		} else {
-			fmt.Println("Site: ", site, "está com problemas. Status Code: ", response.StatusCode)
-		}
+	if response.StatusCode == 200 {
+		fmt.Println("Site: ", site, "foi carregado com sucesso")
+		registraLog(site, true)
+	} else {
+		fmt.Println("Site: ", site, "está com problemas. Status Code: ", response.StatusCode)
+		registraLog(site, false)
+	}
 } 
 
 
@@ -97,12 +103,40 @@ func leArquivo() []string {  //retorna uma slice de strings
 	
 	var sites []string
 	
+	//arquivo, err := os.Open("sites.txt")  //Retorna um ponteiro
+	//arquivo, err := ioutil.ReadFile("sites.txt") //Retorna um array de bytes
 	arquivo, err := os.Open("sites.txt")
 
 	if err != nil {
-		fmt.Println("Ocorreu um erro:", err)
+		fmt.Println("Ocorreu um erro ao abrir o arquivo:", err)
 	}
 
-	fmt.Println(arquivo)
+	leitor := bufio.NewReader(arquivo) //faz um leitura byte por byte, letra por letra
+	for {
+		linha, err := leitor.ReadString('\n')  //indica até onde ele vai ler a string
+		linha = strings.TrimSpace(linha)       //remove os espaços em branco
+		sites = append(sites, linha)
+		if err == io.EOF { //final do arquivo
+			break
+		}
+	}
+	arquivo.Close()
 	return sites
+}
+
+
+func registraLog(site string, status bool){
+	arquivo, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)  //flag de abrir,criar e append para nao sobreescrever
+
+	if err!= nil {
+		fmt.Println("Erro ao abrir o arquivo", err)
+	}
+
+	arquivo.WriteString(
+		time.Now().Format("") + 
+		site + 
+		" - status: " +  strconv.FormatBool(status) + 
+		"\n") //strconv converte bool para str
+	
+	arquivo.Close()
 }

@@ -1,0 +1,3 @@
+https://www.youtube.com.br - status: true
+https://www.alura.com.br - status: true
+https://www.google.com.br - status: true
