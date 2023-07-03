@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 )
 
 const monitoramentos = 3
@@ -26,7 +27,7 @@ func main() {
 		case 1:
 			iniciarMonitoramento()
 		case 2:
-			fmt.Println("Exibindo Logs")
+			imprimeLogs()
 		case 0:
 			fmt.Println("Saindo do programa")
 			os.Exit(0)
@@ -133,10 +134,22 @@ func registraLog(site string, status bool){
 	}
 
 	arquivo.WriteString(
-		time.Now().Format("") + 
+		time.Now().Format("02/01/2006 15:04:05 - ") + 
 		site + 
 		" - status: " +  strconv.FormatBool(status) + 
 		"\n") //strconv converte bool para str
 	
 	arquivo.Close()
+}
+
+
+func imprimeLogs(){
+	fmt.Println("Exibindo Logs")
+	arquivo, err := ioutil.ReadFile("logs.txt")
+
+	if err!= nil {
+		fmt.Println("Erro ao abrir o arquivo", err)
+	}
+
+	fmt.Println(string(arquivo))
 }
